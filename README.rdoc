@@ -1,0 +1,60 @@
+= acts_as_follower_plus
+
+acts_as_follower_plus is a gem which provides additional features to
+acts_as_follower. (unpublished)
+
+Followable objects which have a private_followable property set to
+true, require approval before completing a follow association, the
+follow record is set to pending.
+
+Followable objects have methods for listing pending follows,
+approving or rejecting them.
+
+Followable objects which have the prviate_followable property also
+have a method to switch from private to public and visa-versa, so that
+pending followers for a private object can be automatically approved
+when it is set to public.
+
+
+== Methods for acts_as_followable_plus
+
+  followers(options={})
+  followers_count
+  followers_by_type(follower_type, options={})
+  followers_by_type_count(follower_type)
+
+  blocks(options={})
+  blocked_followers_count
+
+  private?
+  enable_privacy
+  disable_privacy
+
+  pending(options={})
+  approve(follower)
+
+  followed_by?(follower)
+
+  block(follower)
+  unblock(follower)
+
+== Methods for acts_as_follower_plus
+
+  follow(followable)
+  stop_following(followable)
+
+  following?(followable)
+  follow_count
+
+  all_pending_follows(options={})
+  follows_pending_by_type(followable_type, options={})
+
+  all_follows(options={})
+  follows_by_type(followable_type, options={})
+
+  all_following(options={})
+
+  following_by_type(followable_type, options={})
+  following_by_type_count(followable_type)
+
+= See the existing acts_as_follower for more info docs.

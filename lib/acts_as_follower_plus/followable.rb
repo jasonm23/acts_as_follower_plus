@@ -1,0 +1,142 @@
+module ActsAsFollowerPlus #:nodoc:
+  module Followable
+
+    def self.included(base)
+      base.extend ClassMethods
+    end
+
+    module ClassMethods
+      def acts_as_followable_plus
+        has_many :followings, :as => :followable, :dependent => :destroy, :class_name => 'Follow'
+        include ActsAsFollowerPlus::Followable::InstanceMethods
+        include ActsAsFollowerPlus::FollowerLib
+      end
+    end
+
+    module InstanceMethods
+
+      # Returns the number of followers a record has.
+      def followers_count
+        self.followings.unblocked.approved.count
+      end
+
+      # Returns the followers by a given type
+      def followers_by_type(follower_type, options={})
+        follows = follower_type.constantize.
+          joins(:follows).
+          where('follows.blocked'         => false,
+                'follows.pending'         => false,
+                'follows.followable_id'   => self.id, 
+                'follows.followable_type' => parent_class_name(self), 
+                'follows.follower_type'   => follower_type)
+        if options.has_key?(:limit)
+          follows = follows.limit(options[:limit])
+        end
+        if options.has_key?(:includes)
+          follows = follows.includes(options[:includes])
+        end
+        follows
+      end
+
+      def followers_by_type_count(follower_type)
+        self.followings.unblocked.for_follower_type(follower_type).count
+      end
+
+      # Allows magic names on followers_by_type
+      # e.g. user_followers == followers_by_type('User')
+      # Allows magic names on followers_by_type_count
+      # e.g. count_user_followers == followers_by_type_count('User')
+      def method_missing(m, *args)
+        if m.to_s[/count_(.+)_followers/]
+          followers_by_type_count($1.singularize.classify)
+        elsif m.to_s[/(.+)_followers/]
+          followers_by_type($1.singularize.classify)
+        else
+          super
+        end
+      end
+
+      def blocked_followers_count
+        self.followings.blocked.count
+      end
+
+      # Returns the following records.
+      def followers(options={})
+        self.followings.unblocked.approved.includes(:follower).all(options).collect{|f| f.follower}
+      end
+
+      def blocks(options={})
+        self.followings.blocked.includes(:follower).all(options).collect{|f| f.follower}
+      end
+
+      def private?
+        return false unless self.has_attribute? "private_followable"
+        self.private_followable
+      end
+
+      def enable_privacy
+        raise ActiveModel::MissingAttributeError.new("Model #{self.inspect} does not support privacy settings.") unless self.has_attribute? "private_followable"
+        self.private_followable = true
+        self.save
+      end
+
+      def disable_privacy
+        raise ActiveModel::MissingAttributeError.new("Model #{self.inspect} does not support privacy settings.") unless self.has_attribute? "private_followable"
+        self.private_followable = false
+        approve_all_pending
+      end
+
+      def pending(options={})
+        self.followings.unblocked.pending.includes(:follower).all(options).collect{|f| f.follower}
+      end
+
+      def approve(follower)
+        approve_pending_follow get_follow_for(follower)
+      end
+
+      # Returns true if the current instance is followed by the passed record
+      # Returns false if the current instance is blocked by the passed record or no follow is found
+      def followed_by?(follower)
+        self.followings.unblocked.for_follower(follower).exists?
+      end
+
+      def block(follower)
+        get_follow_for(follower) ? block_existing_follow(follower) : block_future_follow(follower)
+      end
+
+      def unblock(follower)
+        get_follow_for(follower).try(:delete)
+      end
+
+      def get_follow_for(follower)
+        self.followings.for_follower(follower).first
+      end
+
+      private
+
+      def approve_all_pending
+        self.followings.unblocked.pending.all.each {|f| 
+          f.pending = false 
+          f.save
+        }
+      end
+
+      def approve_pending_follow(follower)
+        if follower and follower.pending
+          follower.pending = false
+          follower.save
+        end
+      end
+
+      def block_future_follow(follower)
+        follows.create(:followable => self, :follower => follower, :blocked => true)
+      end
+
+      def block_existing_follow(follower)
+        get_follow_for(follower).block!
+      end
+
+    end
+
+  end
+end
