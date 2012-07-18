@@ -52,6 +52,8 @@ when it is set to public.
   all_follows(options={})
   follows_by_type(followable_type, options={})
 
+  all_pending_followables(options={})
+
   all_following(options={})
 
   following_by_type(followable_type, options={})
