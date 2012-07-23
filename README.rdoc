@@ -3,8 +3,11 @@
 acts_as_follower_plus is a gem which provides additional features to
 acts_as_follower. (unpublished)
 
-Followable objects which have a (({private_followable})) property set to
-true, require approval before completing a follow association, the
+Followable objects which have implement 
+
+ private_followable
+
+require approval if `private_followable == true` before completing a follow association, the
 follow record is set to pending.
 
 == Methods for acts_as_followable_plus
