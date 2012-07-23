@@ -1,14 +1,16 @@
 = acts_as_follower_plus
 
-acts_as_follower_plus is a gem which provides additional features to
-acts_as_follower. (unpublished)
+acts_as_follower_plus is a gem which forks from acts_as_follower, and provides simple privacy features to followable models. 
 
-Followable objects which have implement 
+A Followable model which implements:
 
  private_followable
 
-require approval if `private_followable == true` before completing a follow association, the
-follow record is set to pending.
+Can have privacy enabled (via enable_privacy) 
+
+When privacy is enabled, Follows must be approved, before approval they are flagged as pending.
+
+There are helper methods, to find followers, pending, blocked etc...
 
 == Methods for acts_as_followable_plus
 
