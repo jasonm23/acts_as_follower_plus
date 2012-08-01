@@ -55,6 +55,5 @@ There are helper methods, to find followers, pending, blocked etc...
   following_by_type(followable_type, options={})
   following_by_type_count(followable_type)
 
-== Testing post hooks
 
 = See the existing acts_as_follower for more info docs.
