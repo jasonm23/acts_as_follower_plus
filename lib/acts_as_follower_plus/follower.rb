@@ -30,7 +30,7 @@ module ActsAsFollowerPlus #:nodoc:
       # If the followable object is private the follow record is flagged as pending.
       def follow(followable)
         if self != followable
-          self.follows.find_or_create_by_followable_id_and_followable_type_and_pending(followable.id, parent_class_name(followable), followable.private? )
+          self.follows.find_or_create_by_followable_id_and_followable_type_and_pending(followable.id, parent_class_name(followable), !!followable.private? )
         end
       end
 
