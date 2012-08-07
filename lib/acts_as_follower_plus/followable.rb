@@ -83,6 +83,7 @@ module ActsAsFollowerPlus #:nodoc:
       def disable_privacy
         raise ActiveModel::MissingAttributeError.new("Model #{self.inspect} does not support privacy settings.") unless self.has_attribute? "private_followable"
         self.private_followable = false
+        self.save
         approve_all_pending
       end
 
